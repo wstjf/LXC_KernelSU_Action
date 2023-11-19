@@ -14,6 +14,7 @@ jobs:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
       CCACHE_NOHASHDIR: "true"
       CCACHE_HARDLINK: "true"
+      CI: "false"
     steps:
     - uses: actions/checkout@v3
     - name: Prepare Configuration
@@ -154,6 +155,10 @@ jobs:
             sh $GITHUB_WORKSPACE/kernel_workspace/android-kernel/utils/runcpatch.sh $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel/cgroup/cgroup.c
         fi
 
+        if [ -f $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel/cgroup.c ]; then
+            sh $GITHUB_WORKSPACE/kernel_workspace/android-kernel/utils/runcpatch.sh $GITHUB_WORKSPACE/kernel_workspace/android-kernel/kernel/cgroup.c
+        fi
+
         if [ -f $GITHUB_WORKSPACE/kernel_workspace/android-kernel/net/netfilter/xt_qtaguid.c ]; then
             patch -p0 < $GITHUB_WORKSPACE/kernel_workspace/android-kernel/utils/xt_qtaguid.patch
         fi
@@ -162,11 +167,17 @@ jobs:
       if: env.ENABLE_NETHUNTER == 'true'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        git clone https://github.com/tomxi1997/kali-nethunter_patches.git
+        patch -p1 < kali-nethunter_patches/add-rtl88xxau-5.6.4.2-drivers.patch
+        patch -p1 < kali-nethunter_patches/add-wifi-injection-4.14.patch
+        #patch -p1 < kali-nethunter_patches/add-wifi-injection.patch
+        patch -p1 < kali-nethunter_patches/fix-ath9k-naming-conflict.patch
+        sleep 8
         git clone https://github.com/Biohazardousrom/Kali-defconfig-checker.git kali
         cd kali
         chmod +x *.sh
         chmod +x check-kernel-config
-        ./check-kernel-config $GITHUB_WORKSPACE/kernel_workspace/android-kernel/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+        ./check-kernel-config $GITHUB_WORKSPACE/kernel_workspace/android-kernel/arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }} -w
         
     - name: Setup ccache
       if: env.ENABLE_CCACHE == 'true'
