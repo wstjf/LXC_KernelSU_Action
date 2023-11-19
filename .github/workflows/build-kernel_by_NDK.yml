@@ -169,6 +169,8 @@ jobs:
     - name: Setup Configuration for Kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        sed -i 's/CONFIG_CC_STACKPROTECTOR_STRONG=y/CONFIG_CC_STACKPROTECTOR_STRONG=n/' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
+        sed -i 's/CONFIG_SHADOW_CALL_STACK=y/CONFIG_SHADOW_CALL_STACK=n/' arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
         if [ ${{ env.ADD_KPROBES_CONFIG }} = true ]; then
             echo "CONFIG_MODULES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
             echo "CONFIG_KPROBES=y" >> arch/${{ env.ARCH }}/configs/${{ env.KERNEL_CONFIG }}
